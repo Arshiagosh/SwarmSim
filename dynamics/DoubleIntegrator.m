@@ -4,6 +4,7 @@ classdef DoubleIntegrator < handle
     properties
         max_speed = 3.0
         max_accel = 2.0
+        control_dim = 2
     end
     
     methods

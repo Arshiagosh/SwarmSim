@@ -3,10 +3,10 @@ addpath(genpath('..'));
 
 env = Environment([-30, 30], [-30, 30]);
 env.add_circular_obstacle([-10, 0], 10);
-%env.add_circular_obstacle([15, 35], 4);
+env.add_circular_obstacle([15, 15], 4);
 %env.add_rectangular_obstacle([30, 35], [10, 22]);
 
-planner = PotentialField(env, 0.5, 50000, 1.0);
+planner = PotentialField(env, 0.5, 500, 5.0);
 
 start_pos = [-20; -20];
 goal_pos = [20; 20];
@@ -35,6 +35,6 @@ plot(path(1,:), path(2,:), 'g-', 'LineWidth', 2);
 plot(start_pos(1), start_pos(2), 'go', 'MarkerSize', 10, 'LineWidth', 2);
 plot(goal_pos(1), goal_pos(2), 'r*', 'MarkerSize', 15, 'LineWidth', 2);
 
-sim = SimEngine(swarm, env, behav, 0.05, 30);
+sim = SimEngine(swarm, env, behav, 0.05, 40);
 sim.visualizer = viz;
 sim.run();

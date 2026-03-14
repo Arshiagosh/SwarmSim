@@ -14,8 +14,8 @@ classdef AStar < handle
         end
         
         function build_grid(obj)
-            x_range = obj.env.bounds(1,:);
-            y_range = obj.env.bounds(2,:);
+            x_range = obj.env.x_lim(1,:);
+            y_range = obj.env.y_lim(1,:);
             
             nx = ceil((x_range(2) - x_range(1)) / obj.grid_resolution);
             ny = ceil((y_range(2) - y_range(1)) / obj.grid_resolution);

@@ -7,7 +7,7 @@ t_max = 20;
 
 agents = cell(1, N);
 for i = 1:N
-    init_state = [rand(2,1)*40 - 20; 0; 0];
+    init_state = [rand(2,1)*20 - 20; 0; 0];
     agents{i}  = Agent(i, init_state, DoubleIntegrator());
 end
 

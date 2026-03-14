@@ -15,7 +15,14 @@ classdef PathFollowing < handle
         end
         
         function u = compute_control(obj, swarm, env)
-            u = zeros(swarm.agents{1}.dynamics.control_dim, swarm.N);
+            % FIXED: Safely get control dimension with fallback
+            if swarm.N > 0 && isprop(swarm.agents{1}.dynamics, 'control_dim')
+                ctrl_dim = swarm.agents{1}.dynamics.control_dim;
+            else
+                ctrl_dim = 2;  % Default for SingleIntegrator/DoubleIntegrator
+            end
+            
+            u = zeros(ctrl_dim, swarm.N);
             
             for i = 1:swarm.N
                 agent = swarm.agents{i};
@@ -39,13 +46,16 @@ classdef PathFollowing < handle
                     
                     u(:, i) = [v; omega];
                 else
+                    % SingleIntegrator / DoubleIntegrator
                     to_target = target - pos;
-                    u(:, i) = obj.k_v * to_target;
+                    control = obj.k_v * to_target;
                     
                     max_speed = 3.0;
-                    if norm(u(:,i)) > max_speed
-                        u(:,i) = u(:,i) / norm(u(:,i)) * max_speed;
+                    if norm(control) > max_speed
+                        control = control / norm(control) * max_speed;
                     end
+                    
+                    u(:, i) = control;
                 end
             end
         end
@@ -57,7 +67,7 @@ classdef PathFollowing < handle
             end
             
             dists = vecnorm(obj.path - pos);
-            [min_dist, closest_idx] = min(dists);
+            [~, closest_idx] = min(dists);
             
             for k = closest_idx:size(obj.path, 2)
                 if norm(obj.path(:, k) - pos) >= obj.lookahead_dist

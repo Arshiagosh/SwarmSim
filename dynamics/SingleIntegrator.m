@@ -1,8 +1,11 @@
 classdef SingleIntegrator < handle
-    % state: [x; y], control: [vx; vy]
+    % SingleIntegrator - First-order dynamics (velocity control)
+    % State: [x; y], Control: [vx; vy]
     
     properties
-        max_speed = 2.0
+        max_speed = 1.0;
+        state_dim = 2;      % position only
+        control_dim = 2;    % FIX: Added - velocity control (vx, vy)
     end
     
     methods
@@ -13,12 +16,20 @@ classdef SingleIntegrator < handle
         end
         
         function new_state = step(obj, state, u, dt)
-            % clamp control to max speed
-            speed = norm(u);
+            % Apply velocity control with speed limit
+            vel = u(:);
+            speed = norm(vel);
+            
             if speed > obj.max_speed
-                u = u * (obj.max_speed / speed);
+                vel = vel / speed * obj.max_speed;
             end
-            new_state = state + u * dt;
+            
+            new_state = state(:) + vel * dt;
+        end
+        
+        function vel = get_velocity(~, ~, u)
+            % For single integrator, control IS velocity
+            vel = u(:);
         end
     end
 end

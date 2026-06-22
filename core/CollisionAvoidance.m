@@ -32,25 +32,24 @@ classdef CollisionAvoidance < handle
             % compute_control(swarm, env) — base control plus inter-agent repulsion
             u = obj.base_behavior.compute_control(swarm, env);
 
-            for i = 1:swarm.N
-                pos_i   = swarm.agents{i}.state(1:2);
-                f_avoid = zeros(2, 1);
+            P = swarm.get_positions();      % 2×N
+            % Pairwise displacements: DX(i,j) = x_i - x_j
+            DX = P(1,:).' - P(1,:);
+            DY = P(2,:).' - P(2,:);
+            D  = sqrt(DX.^2 + DY.^2);
 
-                for j = 1:swarm.N
-                    if i == j, continue; end
-                    pos_j = swarm.agents{j}.state(1:2);
-                    diff  = pos_i - pos_j;
-                    d     = norm(diff);
-                    if d < obj.d_safe && d > 1e-3
-                        f_avoid = f_avoid + obj.k_rep * (1/d - 1/obj.d_safe) * (diff/d);
-                    end
-                end
+            mask = (D < obj.d_safe) & (D > 1e-3);
+            coef = zeros(size(D));
+            coef(mask) = obj.k_rep * (1 ./ D(mask) - 1/obj.d_safe) ./ D(mask);
 
-                u(:,i) = u(:,i) + f_avoid;
-                if norm(u(:,i)) > obj.max_u
-                    u(:,i) = u(:,i) / norm(u(:,i)) * obj.max_u;
-                end
-            end
+            % Add summed repulsion to the (spatial) control of every agent
+            u(1,:) = u(1,:) + sum(coef .* DX, 2).';
+            u(2,:) = u(2,:) + sum(coef .* DY, 2).';
+
+            % Clamp control magnitude per agent
+            nrm  = vecnorm(u, 2, 1);
+            over = nrm > obj.max_u;
+            u(:, over) = u(:, over) ./ nrm(over) * obj.max_u;
         end
     end
 end

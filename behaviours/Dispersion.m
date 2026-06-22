@@ -28,18 +28,19 @@ classdef Dispersion < handle
 
         function u_all = compute_control(obj, swarm, ~)
             % compute_control(swarm, env) — returns 2×N control matrix
-            positions = swarm.get_positions();
-            u_all     = zeros(2, swarm.N);
-            for i = 1:swarm.N
-                for j = 1:swarm.N
-                    if i == j, continue; end
-                    diff = positions(:,i) - positions(:,j);
-                    d    = norm(diff);
-                    if d < obj.min_dist && d > 1e-6
-                        u_all(:,i) = u_all(:,i) + obj.gain * (diff/d) * (obj.min_dist - d);
-                    end
-                end
-            end
+            P = swarm.get_positions();
+            % Pairwise displacements: DX(i,j) = x_i - x_j, DY(i,j) = y_i - y_j
+            DX = P(1,:).' - P(1,:);
+            DY = P(2,:).' - P(2,:);
+            D  = sqrt(DX.^2 + DY.^2);
+
+            % Repulsion coefficient for neighbours closer than min_dist
+            mask = (D < obj.min_dist) & (D > 1e-6);
+            coef = zeros(size(D));
+            coef(mask) = obj.gain * (obj.min_dist - D(mask)) ./ D(mask);
+
+            % Sum forces from all other agents (sum over columns j)
+            u_all = [sum(coef .* DX, 2).'; sum(coef .* DY, 2).'];
         end
     end
 end

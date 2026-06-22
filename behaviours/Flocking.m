@@ -37,39 +37,30 @@ classdef Flocking < handle
 
         function u_all = compute_control(obj, swarm, ~)
             % compute_control(swarm, env) — returns 2×N control matrix
-            u_all      = zeros(2, swarm.N);
-            positions  = swarm.get_positions();
-            velocities = swarm.get_velocities();
+            P = swarm.get_positions();      % 2×N
+            V = swarm.get_velocities();     % 2×N
+            A = swarm.get_adjacency();      % N×N (symmetric)
 
-            for i = 1:swarm.N
-                neighbours = swarm.get_neighbours(i);
-                if isempty(neighbours), continue; end
+            deg     = sum(A, 2).';          % 1×N neighbour counts
+            has     = deg > 0;
+            degsafe = deg; degsafe(~has) = 1;   % avoid divide-by-zero
 
-                pos_i = positions(:,i);
-                vel_i = velocities(:,i);
+            % Cohesion: mean neighbour position minus own position
+            f_coh = (P * A) ./ degsafe - P;
+            % Alignment: mean neighbour velocity minus own velocity
+            f_ali = (V * A) ./ degsafe - V;
 
-                f_sep = zeros(2,1);
-                f_ali = zeros(2,1);
-                f_coh = zeros(2,1);
+            % Separation: repel from neighbours closer than d_sep
+            DX = P(1,:).' - P(1,:);         % DX(i,j) = x_i - x_j
+            DY = P(2,:).' - P(2,:);
+            D  = sqrt(DX.^2 + DY.^2);
+            mask = (A > 0) & (D < obj.d_sep) & (D > 1e-6);
+            coef = zeros(size(D));
+            coef(mask) = (obj.d_sep - D(mask)) / obj.d_sep ./ D(mask);
+            f_sep = [sum(coef .* DX, 2).'; sum(coef .* DY, 2).'];
 
-                for j = neighbours
-                    diff = pos_i - positions(:,j);
-                    d    = norm(diff);
-
-                    if d < obj.d_sep && d > 1e-6
-                        f_sep = f_sep + (diff/d) * (obj.d_sep - d) / obj.d_sep;
-                    end
-
-                    f_ali = f_ali + (velocities(:,j) - vel_i);
-                    f_coh = f_coh + (positions(:,j) - pos_i);
-                end
-
-                n     = length(neighbours);
-                f_ali = f_ali / n;
-                f_coh = f_coh / n;
-
-                u_all(:,i) = obj.w_sep * f_sep + obj.w_ali * f_ali + obj.w_coh * f_coh;
-            end
+            u_all = obj.w_sep * f_sep + obj.w_ali * f_ali + obj.w_coh * f_coh;
+            u_all(:, ~has) = 0;             % agents with no neighbours hold still
         end
     end
 end

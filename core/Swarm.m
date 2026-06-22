@@ -94,33 +94,30 @@ classdef Swarm < handle
                 return;
             end
 
-            positions = obj.get_positions();
-            A = zeros(obj.N);
+            n = obj.N;
+            P = obj.get_positions();              % 2×n
+
+            % Vectorized pairwise squared distances: D2(i,j) = ||p_i - p_j||^2
+            sq = sum(P.^2, 1);                    % 1×n
+            D2 = max(sq.' + sq - 2 * (P.' * P), 0);  % n×n, clamp tiny negatives
 
             switch obj.topology
                 case 'metric'
-                    for i = 1:obj.N
-                        for j = i+1:obj.N
-                            d = norm(positions(:,i) - positions(:,j));
-                            if d <= obj.comm_radius
-                                A(i,j) = 1;
-                                A(j,i) = 1;
-                            end
-                        end
-                    end
+                    A = double(D2 <= obj.comm_radius^2);
+                    A(1:n+1:end) = 0;             % remove self-loops
 
                 case 'knn'
-                    for i = 1:obj.N
-                        dists = vecnorm(positions - positions(:,i), 2, 1);
-                        dists(i) = inf;
-                        [~, sorted_idx] = sort(dists);
-                        neighbours = sorted_idx(1:min(obj.k_neighbours, obj.N-1));
-                        A(i, neighbours) = 1;
-                    end
-                    A = max(A, A');  % symmetrize
+                    D2(1:n+1:end) = inf;          % exclude self
+                    [~, order] = sort(D2, 1);     % nearest agents per column
+                    kk   = min(obj.k_neighbours, n - 1);
+                    rows = order(1:kk, :);
+                    cols = repmat(1:n, kk, 1);
+                    A = zeros(n);
+                    A(sub2ind([n n], rows(:), cols(:))) = 1;
+                    A = max(A, A');               % symmetrize
 
                 case 'full'
-                    A = ones(obj.N) - eye(obj.N);
+                    A = ones(n) - eye(n);
             end
 
             obj.adjacency_cache = A;

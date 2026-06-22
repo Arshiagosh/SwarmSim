@@ -27,10 +27,7 @@ classdef Aggregation < handle
             % compute_control(swarm, env) — returns 2×N control matrix
             positions = swarm.get_positions();
             centroid  = mean(positions, 2);
-            u_all     = zeros(2, swarm.N);
-            for i = 1:swarm.N
-                u_all(:,i) = obj.gain * (centroid - positions(:,i));
-            end
+            u_all     = obj.gain * (centroid - positions);   % vectorized over all agents
         end
     end
 end

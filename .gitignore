@@ -13,10 +13,12 @@ results/
 *.mat
 *.fig
 
-# Generated figures
+# Generated figures (ignored everywhere except dedicated folders)
 *.png
 *.gif
 *.pdf
+!assets/
+!assets/*
 !docs/**/*.png
 !docs/**/*.gif
 

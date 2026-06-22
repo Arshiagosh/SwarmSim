@@ -6,7 +6,7 @@ SwarmSim is a clean, layered framework for designing, running, and analysing mul
 
 ---
 
-![Flocking simulation](flocking_animated.gif)
+![Flocking simulation](assets/flocking_animated.gif)
 
 ---
 

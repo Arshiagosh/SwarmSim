@@ -63,6 +63,13 @@ classdef Swarm < handle
                 positions(:, i) = obj.agents{i}.position;
             end
         end
+
+        function velocities = get_velocities(obj)
+            velocities = zeros(2, obj.N);
+            for i = 1:obj.N
+                velocities(:, i) = obj.agents{i}.velocity;
+            end
+        end
         
         function A = get_adjacency(obj)
             if obj.cache_valid && ~isempty(obj.adjacency_cache)

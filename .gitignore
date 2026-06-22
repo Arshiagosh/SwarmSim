@@ -1,0 +1,31 @@
+# MATLAB
+*.asv
+*.m~
+*.mlapp
+*.mlx
+*.mex*
+slprj/
+*.slxc
+
+# Output / results
+results/
+*.csv
+*.mat
+*.fig
+
+# Generated figures
+*.png
+*.gif
+*.pdf
+!docs/**/*.png
+!docs/**/*.gif
+
+# Dev utilities (internal only)
+dev/AI_Codebase.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/

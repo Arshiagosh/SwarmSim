@@ -25,6 +25,9 @@ results/
 # Dev utilities (internal only)
 dev/AI_Codebase.txt
 
+# Personal working roadmap (kept local, never committed)
+ROADMAP.md
+
 # OS
 .DS_Store
 Thumbs.db

@@ -1,6 +1,6 @@
 % scenario_rrt.m - RRT path planning demonstration
 clear; clc; close all;
-addpath(genpath('.'));
+addpath(genpath('..'));
 
 env = Environment([0,50], [0,50]);
 env.add_circular_obstacle([20, 20], 6);

@@ -1,30 +1,45 @@
+%% scenario_full_experiment — full behaviour stack with analysis
+%
+% A 12-agent leader–follower formation follows an RRT-planned path from the
+% lower-left to the upper-right of a cluttered environment, with inter-agent
+% collision avoidance layered on top. Metrics are logged and a full analysis
+% dashboard + publication figures are produced at the end.
+%
+% Behaviour stack: CollisionAvoidance( LeaderFollower( PathFollowing(RRT) ) )
+
 clear; clc; close all;
 addpath(genpath('..'));
+rng(1);   % reproducible RRT and agent initialisation
 
 %% Setup
-N   = 12;
-dt  = 0.05;
+N  = 12;
+dt = 0.05;
 
 env = Environment([-30, 30], [-30, 30]);
-env.add_circular_obstacle([20, 20], 5);
-env.add_circular_obstacle([40, 40], 5);
-env.add_rectangular_obstacle([25, 31], [10, 25]);
-env.add_rectangular_obstacle([10, 25], [35, 41]);
-
+env.add_circular_obstacle([-5, -5], 4);
+env.add_circular_obstacle([ 8,  5], 4);
+env.add_rectangular_obstacle([-2, 4], [-20, -8]);
 
 agents = cell(1, N);
 for i = 1:N
-    init_state = [randn(2,1)*3 - 20; 0; 0];
+    init_state = [randn(2,1)*3 - 20; 0; 0];   % clustered near [-20, -20]
     agents{i}  = Agent(i, init_state, DoubleIntegrator(2.0, 1.5));
 end
-
 swarm = Swarm(agents, 12.0, 'metric');
 
-%% Plan path for leader
-planner = RRT(env, 5000, 2.0);
-[path, ~] = planner.plan([-20;-20], [20;20], 2.5);
+%% Plan the leader's path with RRT
+start_pos = [-20; -20];
+goal_pos  = [ 20;  20];
+planner   = RRT(env, 8000, 2.0);
+[path, ~] = planner.plan(start_pos, goal_pos, 2.5);
 
-%% Build behavior stack
+if isempty(path)
+    error('scenario_full_experiment:NoPath', ...
+          'RRT failed to find a path — adjust obstacles, start, or goal.');
+end
+fprintf('RRT path: %d waypoints\n', size(path, 2));
+
+%% Build the behaviour stack
 offsets = 4 * [cos(linspace(pi, 2*pi, N-1));
                sin(linspace(pi, 2*pi, N-1))];
 
@@ -44,11 +59,13 @@ sim.visualizer = viz;
 sim.logger     = logger;
 sim.run();
 
-%% Analysis
-MetricsAnalyzer.print_summary(logger);
-logger.export_csv('results/full_experiment.csv');
+%% Analysis  (results dir resolved relative to the project, not the cwd)
+results_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'results');
+if ~exist(results_dir, 'dir'); mkdir(results_dir); end
 
+MetricsAnalyzer.print_summary(logger);
+logger.export_csv(fullfile(results_dir, 'full_experiment.csv'));
+
+logger.plot_analysis('Full Experiment — Swarm Analysis');
 PublicationPlot.trajectory_plot(logger, env, 'Leader-Follower Formation with RRT Path Planning');
-PublicationPlot.metrics_plot(logger, 'Swarm Metrics: Full Experiment');
-PublicationPlot.save_fig('results/full_experiment_trajectories');
-PublicationPlot.save_fig('results/full_experiment_metrics');
+PublicationPlot.save_fig(fullfile(results_dir, 'full_experiment_trajectories'));

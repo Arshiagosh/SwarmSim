@@ -1,88 +1,53 @@
-% scenario_astar.m - A* path planning demonstration (SCRIPT)
-% Fixed version compatible with core class APIs
+%% scenario_astar — A* grid path planning demonstration
 %
-% Source: AI_Codebase.txt:1544-1569 (original, broken)
+% Plans a path with A* through an environment with circular and rectangular
+% obstacles, then has a small swarm follow it. Trajectories are plotted at
+% the end with PublicationPlot.
+%
+% Dynamics:  SingleIntegrator
+% Behaviour: PathFollowing (path from AStar)
+% Agents:    5
 
 clear; clc; close all;
-addpath(genpath('.'));
+addpath(genpath('..'));
 
-%% ==================== Environment Setup ====================
-% FIX: Environment expects [xmin, xmax], [ymin, ymax] not (width, height)
+%% Environment
 env = Environment([0, 50], [0, 50]);
-
-% Add obstacles
 env.add_circular_obstacle([15, 25], 4);
 env.add_circular_obstacle([30, 15], 5);
-env.add_rectangular_obstacle([20, 30], [28, 34]);  % x_range, y_range
+env.add_rectangular_obstacle([20, 30], [28, 34]);
 
-%% ==================== Path Planning ====================
-planner = AStar(env, 1.0);  % grid resolution = 1.0
+%% Plan with A*
+planner   = AStar(env, 1.0);          % grid resolution = 1.0 m
 start_pos = [2; 2];
 goal_pos  = [48; 48];
 path = planner.plan(start_pos, goal_pos);
 
 if isempty(path)
-    error('A* planner failed to find a path!');
+    error('scenario_astar:NoPath', 'A* failed to find a path.');
 end
+fprintf('A* found a path with %d waypoints\n', size(path, 2));
 
-fprintf('A* found path with %d waypoints\n', size(path, 2));
-
-%% ==================== Swarm Initialization ====================
-% FIX: Create agents array first, then pass to Swarm constructor
+%% Swarm
 num_agents = 5;
 agents = cell(1, num_agents);
-
+rng(7);
 for i = 1:num_agents
-    % Randomize start positions slightly around the path start
-    init_pos = start_pos + randn(2, 1) * 0.5;
-    dynamics = SingleIntegrator(1.5);  % max_speed = 1.5
-    agents{i} = Agent(i, init_pos, dynamics);
+    init_pos  = start_pos + randn(2,1) * 0.5;
+    agents{i} = Agent(i, init_pos, SingleIntegrator(1.5));
 end
+swarm = Swarm(agents, 50.0, 'metric');
 
-% FIX: Swarm requires (agents, comm_radius, topology) or similar
-comm_radius = 50.0;  % large enough for all agents to communicate
-swarm = Swarm(agents, comm_radius, 'metric');
+%% Behaviour + simulation (with logging for analysis)
+behav  = PathFollowing(path, 1.5);
+logger = DataLogger();
+sim    = SimEngine(swarm, env, behav, 0.1, 60);
+sim.logger = logger;
+sim.run();
 
-%% ==================== Behaviour Setup ====================
-% PathFollowing behaviour to track the A* path
-behavior = PathFollowing(path, 1.5);  % path, lookahead_distance
-
-%% ==================== Simulation ====================
-dt = 0.1;
-t_max = 60.0;
-
-% FIX: SimEngine requires (swarm, env, behaviour, dt, t_max)
-engine = SimEngine(swarm, env, behavior, dt, t_max);
-
-% FIX: run() takes no arguments
-fprintf('Starting simulation...\n');
-engine.run();
-
-fprintf('Simulation complete!\n');
-
-%% ==================== Visualization ====================
-figure('Name', 'A* Path Following', 'Position', [100, 100, 800, 800]);
+%% Results
+fprintf('Simulation complete.\n');
+PublicationPlot.trajectory_plot(logger, env, 'A* Path Following');
 hold on;
-
-% Draw environment
-env.plot();
-
-% Draw planned path
-plot(path(1,:), path(2,:), 'g-', 'LineWidth', 2, 'DisplayName', 'A* Path');
-plot(path(1,1), path(2,1), 'go', 'MarkerSize', 12, 'MarkerFaceColor', 'g');
-plot(path(1,end), path(2,end), 'r*', 'MarkerSize', 15, 'LineWidth', 2);
-
-% Draw agent trajectories from history
-colors = lines(num_agents);
-for i = 1:num_agents
-    traj = engine.history.positions{i};
-    plot(traj(1,:), traj(2,:), '-', 'Color', colors(i,:), ...
-         'LineWidth', 1.5, 'DisplayName', sprintf('Agent %d', i));
-end
-
-legend('Location', 'best');
-title('A* Path Following - Swarm Simulation');
-xlabel('X'); ylabel('Y');
-axis equal;
-grid on;
-hold off;
+plot(path(1,:), path(2,:), 'g--', 'LineWidth', 1.5);
+plot(goal_pos(1), goal_pos(2), 'r*', 'MarkerSize', 15, 'LineWidth', 2);

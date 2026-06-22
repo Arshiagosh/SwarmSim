@@ -183,8 +183,17 @@ Records per-step swarm states and performance metrics. Attach via `sim.logger = 
 | Method | Description |
 | --- | --- |
 | `log(t, swarm)` | Record state and metrics at time `t` |
-| `plot_metrics()` | Plot spread, Fiedler value, and energy over time |
-| `export_csv(filename)` | Write time-series metrics to a CSV file |
+| `plot_metrics()` | Plot spread, Fiedler value, and energy over time (3-panel) |
+| `plot_analysis(name)` | Comprehensive 2×3 analysis dashboard: spread, Fiedler λ₂, energy, group speed, polarization φ, closest approach |
+| `export_csv(filename)` | Write all time-series metrics (incl. centroid, polarization, min distance, group speed) to CSV |
+
+**Derived analysis metrics** (computed by `plot_analysis` / `export_csv`):
+
+| Metric | Meaning |
+| --- | --- |
+| `polarization` (φ) | Velocity alignment order in [0,1]; 1 = perfectly aligned |
+| `min_distance` | Minimum pairwise inter-agent distance (collision-safety) |
+| `group_speed` | Translation speed of the swarm centroid |
 
 ---
 

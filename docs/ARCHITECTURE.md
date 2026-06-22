@@ -206,6 +206,8 @@ Both types are consumed consistently by `Environment.in_collision()`, `SimEngine
 | `energy` | 0.5 · Σ‖vᵢ‖² | total kinetic energy |
 | `centroid` | mean(pᵢ) | swarm centre of mass |
 
+`DataLogger.plot_analysis()` renders a clean 2×3 dashboard of all key metrics over time (spread, Fiedler λ₂, energy, group speed, polarization φ, closest approach), and these are also derived on the fly from the logged state history for `export_csv`.
+
 `MetricsAnalyzer` derives higher-level statistics from a completed `DataLogger`: convergence time, total energy, path length, connectivity ratio.
 
 ---
@@ -270,4 +272,8 @@ end
 | `behaviours/` | `BehaviourName.m` | Collective control algorithms |
 | `planners/` | `PlannerName.m` | Path planning algorithms |
 | `scenarios/` | `scenario_name.m` | Runnable demo scripts |
+| `tests/` | `verb_noun.m` | Smoke tests / integration checks |
+| `benchmarks/` | `bench_*.m` | Performance benchmarks (may need optional toolboxes) |
 | `docs/tutorials/` | `NN_title.md` | Numbered tutorial guides |
+
+Run `startup.m` from the project root once per session to put every class on the path and apply the clean plotting style.

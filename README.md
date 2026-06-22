@@ -43,7 +43,7 @@ SwarmSim is a clean, layered framework for designing, running, and analysing mul
 
 ### Analysis tools
 
-- `DataLogger` — per-step metrics: spread, Fiedler connectivity, kinetic energy
+- `DataLogger` — per-step metrics plus a clean `plot_analysis()` dashboard (spread, Fiedler λ₂, energy, group speed, polarization, closest approach) and full CSV export
 - `MetricsAnalyzer` — convergence time, path length, connectivity ratio
 - `ExperimentRunner` — batch runner with comparison bar charts
 - `ParamSweep` — parametric sweeps over any scalar parameter
@@ -53,18 +53,19 @@ SwarmSim is a clean, layered framework for designing, running, and analysing mul
 
 ## Quick start
 
-**Requirements:** MATLAB R2016b or later. No additional toolboxes required.
+**Requirements:** MATLAB R2016b or later. The core simulator needs **no additional toolboxes**. The optional GPU benchmark (`benchmarks/bench_cpu_vs_gpu.m`) requires the Parallel Computing Toolbox.
 
 ```matlab
 % 1. Clone the repo and open MATLAB in the project root
 %    git clone https://github.com/<your-username>/SwarmSim.git
 
-% 2. Run any scenario directly
+% 2. Initialise paths and plotting style
+startup
+
+% 3. Run any scenario directly
 run('scenarios/scenario_flocking.m')
 
-% 3. Or build one from scratch in two minutes:
-addpath(genpath('.'));
-
+% 4. Or build one from scratch in two minutes:
 env    = Environment([-30, 30], [-30, 30]);
 agents = cellfun(@(i) Agent(i, [randn*10; randn*10; 0; 0], DoubleIntegrator()), ...
                  num2cell(1:20), 'UniformOutput', false);
@@ -82,13 +83,16 @@ sim.run();
 
 ```text
 SwarmSim/
+├── startup.m       Path setup + clean LaTeX plotting style
 ├── core/           Agent, Swarm, Environment, SimEngine, DataLogger, …
 ├── dynamics/       SingleIntegrator, DoubleIntegrator, Unicycle
 ├── behaviours/     Aggregation, Dispersion, Flocking, LeaderFollower, …
 ├── planners/       PotentialField, RRT, AStar
 ├── visualization/  SwarmVisualizer
 ├── Tools/          MetricsAnalyzer, ExperimentRunner, ParamSweep, PublicationPlot
-├── scenarios/      14 ready-to-run example scripts
+├── scenarios/      Ready-to-run example scripts
+├── tests/          run_all_scenarios — smoke test for every scenario
+├── benchmarks/     bench_cpu_vs_gpu — CPU/GPU performance benchmark
 ├── docs/           Architecture guide, API reference, tutorials
 └── dev/            Internal utilities (PackForAi, UnpackFromAI)
 ```
@@ -135,6 +139,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design guide and e
 | ✅ | 3 dynamics models, 8 behaviours, 3 planners |
 | ✅ | Real-time visualisation, publication-quality plots |
 | ✅ | Batch experiments, parameter sweeps, CSV export |
+| ✅ | Vectorised algorithms + analysis dashboard (`plot_analysis`) |
+| 🔜 | Interactive GUI (App Designer) to configure, run, and analyse scenarios |
 | 🔜 | Noise & fault modelling (sensor noise, packet loss, agent failure) |
 | 🔜 | PSO and ACO bio-inspired algorithms |
 | 🔜 | 3D simulation (quadrotor dynamics, 3D environment) |

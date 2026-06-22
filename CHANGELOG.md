@@ -12,8 +12,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `dev/` subfolder for internal AI-packing utilities (`PackForAi`, `UnpackFromAI`)
 - `CHANGELOG.md`, `.gitignore`, and `docs/` directory structure
 - `control_dim` property added to `Unicycle` (was missing, required by `LeaderFollower` and `VirtualStructure`)
+- **DataLogger.plot_analysis()** — clean 2×3 analysis dashboard (spread, Fiedler λ₂, energy, group speed, polarization φ, closest approach), interpreter-safe titles; richer `export_csv` (centroid, polarization, min distance, group speed)
+- **startup.m** — project path setup + clean LaTeX plotting style (adapted from the user's MATLAB style; docking guarded for `-batch`)
+- **tests/run_all_scenarios.m** — smoke test that runs every scenario and reports PASS/FAIL (paths resolved relative to the file)
+- **benchmarks/bench_cpu_vs_gpu.m** — CPU-vs-GPU benchmark of the O(N²) hot path; crossover ≈ N=350 (GPU only wins for large swarms)
+
+### Changed (performance)
+
+- **Vectorised O(N²) hot paths**: `Swarm.get_adjacency` (metric + knn), `Aggregation`, `Dispersion`, `Flocking`, `CollisionAvoidance` now use matrix operations instead of nested `norm` loops (behaviour-preserving)
+- **SwarmVisualizer** rewritten to create graphics handles once and update their data each step (no per-frame `cla`/re-plot). A scenario that took ~360 s headless now runs in ~3 s
 
 ### Fixed
+
+- **scenario_astar**: called `env.plot()` and `engine.history` (neither exists) → rewritten to log with `DataLogger` and plot via `PublicationPlot.trajectory_plot`
+- **scenario_full_experiment**: RRT goal sat inside an obstacle (unreachable → empty path → crash); obstacles partly outside world bounds. Fixed geometry, seeded RNG, guarded empty path, and resolve `results/` by absolute path (MATLAB `run()` changes the cwd to the script folder)
+- **scenario_rrt**: `addpath(genpath('.'))` → `'..'` for consistency
 - **DataLogger**: `swarm.laplacian` (non-existent property) → compute from `get_adjacency()` correctly
 - **DataLogger**: velocity extraction now guards against SingleIntegrator/Unicycle state dimensions
 - **FormationWithObstacles**: rectangular obstacle check used wrong type string `'rectangle'` → `'rect'` and wrong field `obs.bounds` → `obs.x_range`/`obs.y_range`; avoidance now fires correctly

@@ -157,8 +157,8 @@ If you use SwarmSim in academic work, please cite:
 @software{swarmsim,
   author  = {Goshtasbi, Arshia},
   title   = {{SwarmSim}: A General-Purpose Swarm Robotics Simulation Platform},
-  year    = {2024},
-  url     = {https://github.com/<your-username>/SwarmSim}
+  year    = {2026},
+  url     = {https://github.com/ArshiaGosh/SwarmSim}
 }
 ```
 

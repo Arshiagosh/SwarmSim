@@ -57,7 +57,7 @@ SwarmSim is a clean, layered framework for designing, running, and analysing mul
 
 ```matlab
 % 1. Clone the repo and open MATLAB in the project root
-%    git clone https://github.com/<your-username>/SwarmSim.git
+%    git clone https://github.com/ArshiaGosh/SwarmSim.git
 
 % 2. Initialise paths and plotting style
 startup

@@ -14,7 +14,7 @@ This tutorial gets you from a fresh clone to a running simulation in under five 
 ## Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/SwarmSim.git
+git clone https://github.com/ArshiaGosh/SwarmSim.git
 cd SwarmSim
 ```
 
